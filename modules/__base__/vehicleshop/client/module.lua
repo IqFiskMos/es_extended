@@ -71,17 +71,8 @@ module.selectedCategory               = module.selectedCategory or nil
 
 module.Init = function()
 
-  local translations = run('data/locales/' .. module.Config.Locale .. '.lua')['Translations']
-  LoadLocale('vehicleshop', module.Config.Locale, translations)
-
-  Citizen.CreateThread(function()
-    RequestIpl('shr_int') -- Load walls and floor
-
-    local interiorID = 7170
-    LoadInterior(interiorID)
-    EnableInteriorProp(interiorID, 'csr_beforeMission') -- Load large window
-    RefreshInterior(interiorID)
-  end)
+  local translations = run('data/locales/' .. Config.Locale .. '.lua')['Translations']
+  LoadLocale('vehicleshop', Config.Locale, translations)
 
   Citizen.CreateThread(function()
     local blip = AddBlipForCoord(module.Config.VehicleShopZones.Main.Center)
@@ -91,7 +82,7 @@ module.Init = function()
     SetBlipScale  (blip, 0.9)
     SetBlipAsShortRange(blip, true)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName("Car Dealership (Buy)")
+    AddTextComponentSubstringPlayerName(_U('vehicleshop:blip_buy_title'))
     EndTextCommandSetBlipName(blip)
     SetBlipColour (blip,2)
   end)
@@ -104,7 +95,7 @@ module.Init = function()
     SetBlipScale  (blip2, 0.9)
     SetBlipAsShortRange(blip2, true)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName("Car Dealership (Sell)")
+    AddTextComponentSubstringPlayerName(_U('vehicleshop:blip_sell_title'))
     EndTextCommandSetBlipName(blip2)
     SetBlipColour (blip2,1)
   end)
@@ -142,7 +133,7 @@ module.Init = function()
 
             if GetPedInVehicleSeat(vehicle, -1) == ped then
 
-              Interact.ShowHelpNotification("Press ~INPUT_CONTEXT~ to sell this vehicle")
+              Interact.ShowHelpNotification(_U('vehicleshop:press_to_sell'))
 
               module.CurrentAction = function()
                 module.SellVehicle()
@@ -153,7 +144,7 @@ module.Init = function()
               end
             end
           else
-            Interact.ShowHelpNotification("You must be in a vehicle to use this.")
+            Interact.ShowHelpNotification(_U('vehicleshop:must_be_in_vehicle'))
 
           end
         end
@@ -165,17 +156,17 @@ module.Init = function()
     end)
 
     on('vehicleshop:enteredZone', function()
-      
+
       if not module.categories or not module.vehicles or #module.categories == 0 or #module.vehicles == 0 then
         module.LoadAssets()
       end
 
       if not module.inTestDrive then
-        Interact.ShowHelpNotification("Press ~INPUT_CONTEXT~ to access the vehicle shop.")
+        Interact.ShowHelpNotification(_U('vehicleshop:press_access'))
 
         module.CurrentAction = function()
           if IsPedSittingInAnyVehicle(PlayerPedId()) then
-            utils.ui.showNotification("You are in a vehicle")
+            utils.ui.showNotification(_U('vehicleshop:already_in_vehicle'))
             return
           end
 
@@ -187,8 +178,19 @@ module.Init = function()
     on('vehicleshop:exitedZone', function()
       module.Exit()
     end)
-
   end
+
+  local interiorID = 7170
+
+  Citizen.CreateThread(function()
+    if not IsIplActive(interiorId) then
+      RequestIpl('shr_int') -- Load walls and floor
+
+      LoadInterior(interiorID)
+      EnableInteriorProp(interiorID, 'csr_beforeMission') -- Load large window
+      RefreshInterior(interiorID)
+    end
+  end)
 end
 
 -----------------------------------------------------------------------------------
@@ -385,10 +387,10 @@ module.OpenShopMenu = function()
     end
   end
 
-  items[#items + 1] = {type= 'button', name = 'exit', label = ">> Exit <<"}
+  items[#items + 1] = {type= 'button', name = 'exit', label = '>> ' .. _U('exit') .. ' <<'}
 
   module.shopMenu = Menu('vehicleshop.main', {
-    title = 'Vehicle Shop',
+    title = _U('vehicleshop:shop_title'),
     float = 'top|left', -- not needed, default value
     items = items
   })
@@ -436,7 +438,7 @@ module.OpenCategoryMenu = function(category, categoryLabel)
       end
     end
 
-    items[#items + 1] = {name = 'back', label = '>> Back <<', type = 'button'}
+    items[#items + 1] = {name = 'back', label = '>> ' .. _U('back') .. ' <<', type = 'button'}
 
     if module.shopMenu.visible then
       module.shopMenu:hide()
@@ -480,9 +482,9 @@ module.OpenBuyMenu = function(category, categorylabel, vehicleData)
 
   local items = {}
 
-  items[#items + 1] = {name = 'yes', label = '>> Yes <<', type = 'button', value = category[model]}
-  items[#items + 1] = {name = 'no', label = '>> No <<', type = 'button'}
-  items[#items + 1] = {name = 'testdrive', label = '>> Test Drive <<', type = 'button'}
+  items[#items + 1] = {name = 'yes', label = '>> ' .. _U('yes') .. ' <<', type = 'button', value = category[model]}
+  items[#items + 1] = {name = 'no', label = '>> ' .. _U('no') .. ' <<', type = 'button'}
+  items[#items + 1] = {name = 'testdrive', label = '>> ' .. _U('vehicleshop:test_drive') .. ' <<', type = 'button'}
 
   module.lastMenu = module.currentMenu
 
@@ -491,7 +493,7 @@ module.OpenBuyMenu = function(category, categorylabel, vehicleData)
   end
 
   module.buyMenu = Menu('vehicleshop.buy', {
-    title = "Buy " .. vehicleData.name .. " for $" .. module.GroupDigits(vehicleData.price) .. "?",
+    title = _U('vehicleshop:buy_confirm', vehicleData.name, module.GroupDigits(vehicleData.price)),
     float = 'top|left', -- not needed, default value
     items = items
   })
@@ -535,7 +537,7 @@ module.OpenBuyMenu = function(category, categorylabel, vehicleData)
       local resellPrice = math.round(vehicleData.price / 100 * module.resellPercentage)
 
       if not generatedPlate then
-        print("Failure to generate plate. Please contact the server administrator.")
+        print(_U('vehicleshop:generate_failure'))
       else
         utils.game.requestModel(vehicleData.model, function()
 
@@ -578,12 +580,12 @@ module.OpenBuyMenu = function(category, categorylabel, vehicleData)
                   SetVehRadioStation(vehicle, 'OFF')
                 end
 
-                local vehicleProps = module.GetVehicleProperties(vehicle)
+                local vehicleProps = utils.game.getVehicleProperties(vehicle)
                 emitServer('vehicleshop:updateVehicle', vehicleProps, generatedPlate)
 
                 Wait(400)
 
-                utils.ui.showNotification("You have bought a ~y~" .. name .. "~s~ with the plates ~b~" .. generatedPlate .. "~s~ for ~g~$" .. formattedPrice)
+                utils.ui.showNotification(_U('vehicleshop:buy_success', name, generatedPlate, formattedPrice))
 
                 module.Exit()
               end
@@ -661,7 +663,7 @@ module.startTestDrive = function(model)
             SetEntityVisible(ped, true)
           end
 
-          utils.ui.showNotification("Test Drive Started.")
+          utils.ui.showNotification(_U('vehicleshop:test_drive_started'))
 
           module.Exit()
 
@@ -686,13 +688,12 @@ module.startTestDrive = function(model)
                 local pedCoords = GetEntityCoords(PlayerPedId())
 
                 module.testDriveTime = module.testDriveTime - 0.009
-
                 if math.floor(module.testDriveTime) >= 60 then
-                  utils.ui.showHelpNotification("~INPUT_CONTEXT~ To End Early - Time Remaining: ~g~" .. math.floor(module.testDriveTime), false, false, 1)
+                  utils.ui.showHelpNotification(_U('vehicleshop:test_drive_remaining_long', math.floor(module.testDriveTime)), false, false, 1)
                 elseif math.floor(module.testDriveTime) >= 20 and math.floor(module.testDriveTime) < 60 then
-                  utils.ui.showHelpNotification("~INPUT_CONTEXT~ To End Early - Time Remaining: ~y~" .. math.floor(module.testDriveTime), false, false, 1)
+                  utils.ui.showHelpNotification(_U('vehicleshop:test_drive_remaining_med', math.floor(module.testDriveTime)), false, false, 1)
                 elseif math.floor(module.testDriveTime) < 20 then
-                  utils.ui.showHelpNotification("~INPUT_CONTEXT~ To End Early - Time Remaining: ~r~" .. math.floor(module.testDriveTime), false, false, 1)
+                  utils.ui.showHelpNotification(_U('vehicleshop:test_drive_remaining_short', math.floor(module.testDriveTime)), false, false, 1)
                 end
 
                 if module.testDriveTime <= 0 then
@@ -702,7 +703,7 @@ module.startTestDrive = function(model)
             end
 
             if module.playerDied then
-              utils.ui.showNotification("Test Drive Ended Due To Death5.")
+              utils.ui.showNotification(_U('vehicleshop:end_test_drive_death'))
             else
               Interact.StopHelpNotification()
 
@@ -720,7 +721,7 @@ module.startTestDrive = function(model)
               Citizen.Wait(500)
 
               FreezeEntityPosition(PlayerPedId(), false)
-              utils.ui.showNotification("Test Drive Ended.")
+              utils.ui.showNotification(_U('vehicleshop:test_drive_ended'))
 
               DoScreenFadeIn(300)
 
@@ -750,114 +751,8 @@ module.startTestDrive = function(model)
 
 end
 
--- module.startTestDrive = function(car)
-
---   module.playerDied = false
-
---   local playerPed = PlayerPedId()
-
---   module.testDriveTime = tonumber(module.Config.TestDriveTime)
-
---   PlaySoundFrontend(-1, "Player_Enter_Line", "GTAO_FM_Cross_The_Line_Soundset", 0)
-
-  
-
---   utils.game.requestModel(GetHashKey(car))
-
---   while not HasModelLoaded(GetHashKey(car)) do
---     Citizen.Wait(0)
---   end
-
---   utils.ui.showNotification("Test Drive Started.")
-
-
---   local testVeh = CreateVehicle(GetHashKey(car), module.Config.ShopOutside.Pos, module.Config.ShopOutside.Heading,  996.786, 25.1887, false, false)
-
---   Citizen.Wait(150)
-
---   SetEntityAsMissionEntity(testVeh)
---   SetVehicleLivery(testVeh, 0)
---   TaskWarpPedIntoVehicle(PlayerPedId(), testVeh, - 1)
---   SetVehicleNumberPlateText(testVeh, "RENTAL")
---   SetVehicleColours(testVeh, 111,111)
---   SetPedCanBeKnockedOffVehicle(PlayerPedId(),1)
---   SetPedCanRagdoll(PlayerPedId(),false)
---   SetEntityVisible(playerPed, true)
-
---   Citizen.Wait(500)
-
---   DoScreenFadeIn(300)
-
---   module.inTestDrive = true
-
---   if not DoesEntityExist(testVeh) then
---     module.testDriveTime = 0
---   end
-
---   while module.inTestDrive do
-
---     Citizen.Wait(0)
---     DisableControlAction(0, 75, true)
---     DisableControlAction(27, 75, true)
---     DisableControlAction(0, 70, true)
---     DisableControlAction(0, 69, true)
-
---     if IsEntityDead(PlayerPedId()) then
---       module.playerDied    = true
---       module.inTestDrive   = false
---       module.testDriveTime = 0
---     else
---       local pedCoords = GetEntityCoords(PlayerPedId())
-
---       module.testDriveTime = module.testDriveTime - 0.009
-
---       if math.floor(module.testDriveTime) >= 60 then
---         utils.ui.showHelpNotification("~INPUT_CONTEXT~ To End Early - Time Remaining: ~g~" .. math.floor(module.testDriveTime), false, false, 1)
---       elseif math.floor(module.testDriveTime) >= 20 and math.floor(module.testDriveTime) < 60 then
---         utils.ui.showHelpNotification("~INPUT_CONTEXT~ To End Early - Time Remaining: ~y~" .. math.floor(module.testDriveTime), false, false, 1)
---       elseif math.floor(module.testDriveTime) < 20 then
---         utils.ui.showHelpNotification("~INPUT_CONTEXT~ To End Early - Time Remaining: ~r~" .. math.floor(module.testDriveTime), false, false, 1)
---       end
-
---       if module.testDriveTime <= 0 then
---         module.inTestDrive = false
---       end
---     end
---   end
-
---   if module.playerDied then
---     utils.ui.showNotification("Test Drive Ended Due To Death5.")
---   else
---     Interact.StopHelpNotification()
-
---     SetPedCanRagdoll(PlayerPedId(),true)
---     SetPedCanBeKnockedOffVehicle(PlayerPedId(),0)
---     PlaySoundFrontend(-1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", 1)
-
---     DoScreenFadeOut(300)
-
---     Citizen.Wait(500)
-
---     DeleteEntity(testVeh)
---     FreezeEntityPosition(PlayerPedId(), true)
-
---     Citizen.Wait(500)
-
---     FreezeEntityPosition(PlayerPedId(), false)
---     utils.ui.showNotification("Test Drive Ended.")
-
---     DoScreenFadeIn(300)
-
---     FreezeEntityPosition(playerPed, false)
-
---     SetEntityCoords(playerPed, module.savedPosition)
-
---     emit('esx:identity:preventSaving', false)
---   end
--- end
-
 module.LoadAssets = function()
-  if module.Config.UseCache then
+  if Config.Modules.Cache.UseCache then
     request("vehicleshop:getCategories", function(categories)
       module.categories = categories
 
@@ -886,111 +781,6 @@ end
 
 -----------------------------------------------------------------------------------
 -- Shop Sub-Menu 2 Functions
------------------------------------------------------------------------------------
-
-module.GetVehicleProperties = function(vehicle)
-  if DoesEntityExist(vehicle) then
-    local colorPrimary, colorSecondary = GetVehicleColours(vehicle)
-    local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
-    local extras = {}
-
-    for extraId=0, 12 do
-      if DoesExtraExist(vehicle, extraId) then
-        local state = IsVehicleExtraTurnedOn(vehicle, extraId) == 1
-        extras[tostring(extraId)] = state
-      end
-    end
-
-    return {
-      model             = GetEntityModel(vehicle),
-
-      plate             = module.Trim(GetVehicleNumberPlateText(vehicle)),
-      plateIndex        = GetVehicleNumberPlateTextIndex(vehicle),
-
-      bodyHealth        = math.round(GetVehicleBodyHealth(vehicle), 1),
-      engineHealth      = math.round(GetVehicleEngineHealth(vehicle), 1),
-      tankHealth        = math.round(GetVehiclePetrolTankHealth(vehicle), 1),
-
-      fuelLevel         = math.round(GetVehicleFuelLevel(vehicle), 1),
-      dirtLevel         = math.round(GetVehicleDirtLevel(vehicle), 1),
-      color1            = colorPrimary,
-      color2            = colorSecondary,
-
-      pearlescentColor  = pearlescentColor,
-      wheelColor        = wheelColor,
-
-      wheels            = GetVehicleWheelType(vehicle),
-      windowTint        = GetVehicleWindowTint(vehicle),
-      xenonColor        = GetVehicleXenonLightsColour(vehicle),
-
-      neonEnabled       = {
-        IsVehicleNeonLightEnabled(vehicle, 0),
-        IsVehicleNeonLightEnabled(vehicle, 1),
-        IsVehicleNeonLightEnabled(vehicle, 2),
-        IsVehicleNeonLightEnabled(vehicle, 3)
-      },
-
-      neonColor         = table.pack(GetVehicleNeonLightsColour(vehicle)),
-      extras            = extras,
-      tyreSmokeColor    = table.pack(GetVehicleTyreSmokeColor(vehicle)),
-
-      modSpoilers       = GetVehicleMod(vehicle, 0),
-      modFrontBumper    = GetVehicleMod(vehicle, 1),
-      modRearBumper     = GetVehicleMod(vehicle, 2),
-      modSideSkirt      = GetVehicleMod(vehicle, 3),
-      modExhaust        = GetVehicleMod(vehicle, 4),
-      modFrame          = GetVehicleMod(vehicle, 5),
-      modGrille         = GetVehicleMod(vehicle, 6),
-      modHood           = GetVehicleMod(vehicle, 7),
-      modFender         = GetVehicleMod(vehicle, 8),
-      modRightFender    = GetVehicleMod(vehicle, 9),
-      modRoof           = GetVehicleMod(vehicle, 10),
-
-      modEngine         = GetVehicleMod(vehicle, 11),
-      modBrakes         = GetVehicleMod(vehicle, 12),
-      modTransmission   = GetVehicleMod(vehicle, 13),
-      modHorns          = GetVehicleMod(vehicle, 14),
-      modSuspension     = GetVehicleMod(vehicle, 15),
-      modArmor          = GetVehicleMod(vehicle, 16),
-
-      modTurbo          = IsToggleModOn(vehicle, 18),
-      modSmokeEnabled   = IsToggleModOn(vehicle, 20),
-      modXenon          = IsToggleModOn(vehicle, 22),
-
-      modFrontWheels    = GetVehicleMod(vehicle, 23),
-      modBackWheels     = GetVehicleMod(vehicle, 24),
-
-      modPlateHolder    = GetVehicleMod(vehicle, 25),
-      modVanityPlate    = GetVehicleMod(vehicle, 26),
-      modTrimA          = GetVehicleMod(vehicle, 27),
-      modOrnaments      = GetVehicleMod(vehicle, 28),
-      modDashboard      = GetVehicleMod(vehicle, 29),
-      modDial           = GetVehicleMod(vehicle, 30),
-      modDoorSpeaker    = GetVehicleMod(vehicle, 31),
-      modSeats          = GetVehicleMod(vehicle, 32),
-      modSteeringWheel  = GetVehicleMod(vehicle, 33),
-      modShifterLeavers = GetVehicleMod(vehicle, 34),
-      modAPlate         = GetVehicleMod(vehicle, 35),
-      modSpeakers       = GetVehicleMod(vehicle, 36),
-      modTrunk          = GetVehicleMod(vehicle, 37),
-      modHydrolic       = GetVehicleMod(vehicle, 38),
-      modEngineBlock    = GetVehicleMod(vehicle, 39),
-      modAirFilter      = GetVehicleMod(vehicle, 40),
-      modStruts         = GetVehicleMod(vehicle, 41),
-      modArchCover      = GetVehicleMod(vehicle, 42),
-      modAerials        = GetVehicleMod(vehicle, 43),
-      modTrimB          = GetVehicleMod(vehicle, 44),
-      modTank           = GetVehicleMod(vehicle, 45),
-      modWindows        = GetVehicleMod(vehicle, 46),
-      modLivery         = GetVehicleLivery(vehicle)
-    }
-  else
-    return
-  end
-end
-
------------------------------------------------------------------------------------
--- Vehicle Model Loading Functions
 -----------------------------------------------------------------------------------
 
 module.commit = function(model)
@@ -1078,18 +868,18 @@ module.showVehicleStats = function()
       
             module.RenderBox(module.xoffset - 0.05, module.windowSizeX, (module.yoffset - 0.0325), module.windowSizY, 0, 0, 0, 225)
 
-            module.DrawText("Top Speed", module.xoffset - 0.146, module.yoffset - 0.105)
+            module.DrawText(_U('vehicleshop:top_speed'), module.xoffset - 0.146, module.yoffset - 0.105)
             module.RenderBox(module.statOffsetX, module.statSizeX, (module.yoffset - 0.07), module.statSizeY, 60, 60, 60, 225)
             module.RenderBox(module.statOffsetX - ((module.statSizeX - topSpeedStat) / 2), topSpeedStat, (module.yoffset - 0.07), module.statSizeY, 0, 255, 255, 225)
 
-            module.DrawText("Acceleration", module.xoffset - 0.138, module.yoffset - 0.065)
+            module.DrawText(_U('vehicleshop:acceleration'), module.xoffset - 0.138, module.yoffset - 0.065)
             module.RenderBox(module.statOffsetX, module.statSizeX, (module.yoffset - 0.03), module.statSizeY, 60, 60, 60, 225)
             module.RenderBox(module.statOffsetX - ((module.statSizeX - (accelerationStat * 4)) / 2), accelerationStat * 4, (module.yoffset - 0.03), module.statSizeY, 0, 255, 255, 225)
 
-            module.DrawText("Gears", module.xoffset - 0.1565, module.yoffset - 0.025)
+            module.DrawText(_U('vehicleshop:gears'), module.xoffset - 0.1565, module.yoffset - 0.025)
             module.DrawText(gearStat, module.xoffset + 0.068, module.yoffset - 0.025)
 
-            module.DrawText("Seating Capacity", module.xoffset - 0.1275, module.yoffset + 0.002)
+            module.DrawText(_U('vehicleshop:seating_capacity'), module.xoffset - 0.1275, module.yoffset + 0.002)
             module.DrawText(capacityStat, module.xoffset + 0.068, module.yoffset + 0.002)
           end
         end
@@ -1135,7 +925,7 @@ module.SellVehicle = function()
                     Citizen.Wait(0)
                   end
                   
-                  utils.ui.showNotification("You have sold your ~y~" .. name .. "~s~ with the plates ~b~" .. plate .. "~s~ for ~g~$" .. formattedPrice)
+                  utils.ui.showNotification(_U('vehicleshop:sell_success', name, plate, formattedPrice))
                   module.DeleteVehicle(vehicle)
 
                   Citizen.Wait(500)
@@ -1147,7 +937,7 @@ module.SellVehicle = function()
             end
           end
         else
-          utils.ui.showNotification("~r~You must own this vehicle in order to use this marker.")
+          utils.ui.showNotification(_U('vehicleshop:must_own_vehicle'))
         end
       end, plate)
     end
@@ -1254,7 +1044,7 @@ module.WaitForVehicleToLoad = function(modelHash)
     utils.game.requestModel(modelHash)
 
     BeginTextCommandBusyspinnerOn('STRING')
-    AddTextComponentSubstringPlayerName("Please wait for the model to load...")
+    AddTextComponentSubstringPlayerName(_U('model_loading'))
     EndTextCommandBusyspinnerOn(4)
 
     while not HasModelLoaded(modelHash) do

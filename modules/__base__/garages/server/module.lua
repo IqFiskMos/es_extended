@@ -16,17 +16,24 @@ local utils   = M("utils")
 module.Cache = {}
 module.Cache.ownedVehicles = {}
 
+module.Config  = run('data/config.lua', {vector3 = vector3})['Config']
+
+module.Init = function()
+  local translations = run('data/locales/' .. Config.Locale .. '.lua')['Translations']
+  LoadLocale('garages', Config.Locale, translations)
+end
+
 module.UpdateVehicle = function(vehicleProps, plate)
   local player = Player.fromId(source)
 
-  if module.Config.UseCache then
-    local value = json.encode(vehicleProps)
+  if Config.Modules.Cache.UseCache then
+    local value = vehicleProps
 
     Cache.UpdateValueInIdentityCache("owned_vehicles", player.identifier, player:getIdentityId(), "plate", plate, "vehicle", value)
   else
     MySQL.Async.execute('UPDATE owned_vehicles SET vehicle = @vehicle WHERE plate = @plate', {
       ['@plate']   = plate,
-      ['@vehicle'] = json.encode(vehicleProps)
+      ['@vehicle'] = vehicleProps
     })
   end
 end
