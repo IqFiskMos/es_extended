@@ -11,6 +11,17 @@
 --   This copyright should appear in every part of the project code
 
 Locales['sv'] = {
+<<<<<<< Updated upstream
+=======
+    -- Global
+    ['submit'] = 'Godkänn',
+    ['back'] = 'Tillbaka',
+    ['close'] = 'Stäng',
+    ['exit'] = 'Avsluta',
+    ['yes'] = 'Ja',
+    ['no'] = 'Nej',
+
+>>>>>>> Stashed changes
   -- Inventory
   ['inventory'] = 'mitt förråd %s / %s',
   ['use'] = 'använd',
@@ -49,6 +60,18 @@ Locales['sv'] = {
   ['threw_cannot_pickup'] = 'du kan inte plocka upp det på grund av att det kommer ej få plats i ditt förråd!',
   ['threw_pickup_prompt'] = 'tryck ~y~E~s~ för att plocka upp',
 
+    -- Account
+    ['account_moniker'] = "kr",
+    ['account_add_money'] = 'lägg till pengar till spelares konto',
+    ['account_account_name'] = 'kontonamn',
+    ['account_money_value'] =  'summa',
+    ['account_commandderror_account'] = 'kontot saknas',
+    ['account_commanderror_money'] = 'felaktig summa',
+    ['account_remove_money'] = 'tabort pengar från spelares konto',
+    ['account_notify_moneychange'] = 'Transaktion av ~g~%s%s~s~ godkännt för kontot \"~y~%s~s~\".',
+    ['account_notify_not_enough_money'] = 'Transaktion av ~g~%s%s ~s~nekad. Ditt konto \"~y~%s~s~\" har inte tillräkligt med pengar.',
+    ['account_notify_transaction_error'] = 'Något gick fel vid hämtning av kontot \"~y~%s~s~\".',
+
   -- Key mapping
   ['keymap_showinventory'] = 'öppna inventory',
 
@@ -66,10 +89,6 @@ Locales['sv'] = {
   ['in_vehicle'] = 'du kan inte ge saker till en som sitter i ett fordon!',
 
   -- Commands
-  ['command_car'] = 'spawna ett fordon',
-  ['command_car_car'] = 'namn på fordon eller hash',
-  ['command_cardel'] = 'radera fordon i närheten',
-  ['command_cardel_radius'] = 'valfri, radera alla fordon inom den angivna radien',
   ['command_clear'] = 'töm chatten',
   ['command_clearall'] = 'töm chatten för alla spelare',
   ['command_clearinventory'] = 'töm en spelares inventory',
@@ -109,10 +128,56 @@ Locales['sv'] = {
   ['commanderror_invaliditem'] = 'ej giltigt item',
   ['commanderror_invalidweapon'] = 'ej giltigt vapen',
   ['commanderror_console'] = 'detta kommando kan ej executas i konsol',
+  ['commanderror_self'] = 'Du kan inte göra detta mot dig själv',
   ['commanderror_invalidcommand'] = '^3%s^0 är inte ett giltigt kommando!',
   ['commanderror_invalidplayerid'] = 'det finns ingen spelare som matchar det angivna server id',
   ['commandgeneric_playerid'] = 'spelarid',
 
+<<<<<<< Updated upstream
+=======
+  --- Admin
+  ['admin_command_tptm'] = 'TP:a till markering',
+  ['admin_command_tptp'] = 'TP:a till spelare',
+  ['command_tptp_rev'] = 'TP:a spelare till dig',
+  ['admin_command_car'] = 'ta fram en bil',
+  ['admin_command_car_hashname'] = 'fordonsnamn eller hash',
+  ['admin_command_cardel'] = 'ta bort bil i omgivningen',
+  ['admin_command_cardel_radius'] = 'ta bort fordon inom en vis radie',
+  ['admin_command_freeze'] = 'Frys',
+  ['admin_command_unfreeze'] = 'Ta bort frysningen',
+	['admin_command_revive'] = 'återuppliva',
+	['admin_command_get_coords'] = 'Skriv ut dina koordinater i konsolen(F8)',
+	['admin_player_list'] = 'Skriv ut spelarlistan i konsolen(F8) eller i en meny',
+  ['admin_command_spectate_player'] = 'inspektera spelare',
+  ['admin_command_health'] = 'sätt hälsa',
+	['admin_command_kill_player'] = 'döda spelare',
+  ['admin_command_armor'] = 'sätt skydd',
+	['admin_command_set_weapon'] = 'sätt vapen',
+	['admin_result_tp'] = 'Teleporterad.',
+	['admin_result_freeze'] = 'Du har blivit fryst av en admin.',
+	['admin_result_unfreeze'] = 'En admin har tagit bort frysningen från dig.',
+	['admin_result_revive'] = 'Du har blivit återupplivad av en admin.',
+	['admin_result_health'] = 'Din hälsa har ändrats.',
+	['admin_result_armor'] = 'Din armor har ändrats.',
+	['admin_result_tptm'] = 'Var god och placera din markering.',
+	['admin_result_current_active'] = 'Du har något aktivt.',
+  ['admin_result_spectate'] = 'Tryck ~INPUT_FRONTEND_CANCEL~ för att slyta inspektera spelaren.',
+
+  -- Unfinished
+	-- ['command_kick'] = 'Sparka',
+	-- ['command_ban'] = 'Banlys',
+  -- ['command_unban'] = 'Ta bort banlysning',
+	-- ['admin_back'] = 'Tillbaka',
+	-- ['admin_close'] = 'Stäng',
+
+	-- Menu
+	['menu_admin_oplayer'] = 'någon spelare',
+  ['menu_admin_player'] = 'spelare',
+	['menu_admin_vehicle'] = 'fordon',
+	['menu_admin_job'] = 'jobb',
+	['menu_admin_esx'] = 'esx',
+
+>>>>>>> Stashed changes
   -- Locale settings
   ['locale_digit_grouping_symbol'] = ' ',
   ['locale_currency'] = '%s SEK',
@@ -238,5 +303,16 @@ Locales['sv'] = {
   -- Identity
   ['identity_register'] = 'Var god och registrera din karaktär.',
   ['identity_welcome'] = 'Välkommen, ~b~%s %s',
+<<<<<<< Updated upstream
   ['identity_fill_in'] = 'Var god och fyll i alla fälten innan du går vidare!',
+=======
+  ['identity_fill_in'] = 'Var god och fyll i samtliga fält innan du går vidare!',
+  ['identity_firstname'] = 'Förnamn',
+  ['identity_lastname'] = 'Efternamn',
+  ['identity_birthdate'] = 'Födelsedatum',
+  ['identity_sex'] = "Kön",
+  ['identity_male'] = "Man",
+  ['identity_female'] = "Kvinna",
+
+>>>>>>> Stashed changes
 }
